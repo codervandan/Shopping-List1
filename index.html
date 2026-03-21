@@ -15,11 +15,10 @@
     --accent-light: #fdeee7;
     --line: #e8e4dc;
     --green: #2d6a4f;
-    --green-light: #e8f4ee;
     --shadow: 0 2px 16px rgba(0,0,0,0.07);
   }
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   body {
     background: var(--bg);
@@ -29,7 +28,6 @@
     padding: 40px 20px 80px;
   }
 
-  /* Subtle texture overlay */
   body::before {
     content: '';
     position: fixed;
@@ -73,15 +71,34 @@
     line-height: 1.1;
   }
 
-  h1 span {
-    color: var(--accent);
-  }
+  h1 span { color: var(--accent); }
 
   .subtitle {
     margin-top: 8px;
     font-size: 14px;
     color: var(--muted);
     font-weight: 300;
+  }
+
+  /* Save indicator */
+  .save-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 10px;
+    font-size: 11px;
+    color: var(--muted);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .save-indicator.show { opacity: 1; }
+
+  .save-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--green);
   }
 
   /* Add form */
@@ -91,8 +108,8 @@
     padding: 24px;
     box-shadow: var(--shadow);
     margin-bottom: 28px;
-    animation: fadeUp 0.6s 0.1s ease both;
     border: 1px solid var(--line);
+    animation: fadeUp 0.6s 0.1s ease both;
   }
 
   .add-card label {
@@ -105,19 +122,9 @@
     margin-bottom: 12px;
   }
 
-  .input-row {
-    display: flex;
-    gap: 10px;
-  }
-
-  .input-item {
-    flex: 1;
-  }
-
-  .input-price {
-    width: 110px;
-    flex-shrink: 0;
-  }
+  .input-row   { display: flex; gap: 10px; }
+  .input-item  { flex: 1; }
+  .input-price { width: 110px; flex-shrink: 0; }
 
   input[type="text"],
   input[type="number"] {
@@ -133,36 +140,17 @@
     outline: none;
   }
 
-  input[type="text"]:focus,
-  input[type="number"]:focus {
+  input:focus {
     border-color: var(--accent);
     box-shadow: 0 0 0 3px rgba(200, 68, 10, 0.1);
     background: #fff;
   }
 
-  input[type="text"]::placeholder,
-  input[type="number"]::placeholder {
-    color: #ccc;
-  }
+  input::placeholder { color: #ccc; }
 
-  /* Price input wrapper with $ sign */
-  .price-wrap {
-    position: relative;
-  }
-
-  .price-wrap span {
-    position: absolute;
-    left: 14px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--muted);
-    font-size: 14px;
-    pointer-events: none;
-  }
-
-  .price-wrap input {
-    padding-left: 28px;
-  }
+  .price-wrap       { position: relative; }
+  .price-wrap span  { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 14px; pointer-events: none; }
+  .price-wrap input { padding-left: 28px; }
 
   .btn-add {
     margin-top: 14px;
@@ -184,12 +172,11 @@
     gap: 8px;
   }
 
-  .btn-add:hover { background: var(--accent); }
+  .btn-add:hover  { background: var(--accent); }
   .btn-add:active { transform: scale(0.98); }
+  .btn-add svg    { width: 16px; height: 16px; }
 
-  .btn-add svg { width: 16px; height: 16px; }
-
-  /* List section */
+  /* List header */
   .list-header {
     display: flex;
     justify-content: space-between;
@@ -199,10 +186,7 @@
     animation: fadeUp 0.6s 0.2s ease both;
   }
 
-  .list-title {
-    font-family: 'Playfair Display', serif;
-    font-size: 18px;
-  }
+  .list-title  { font-family: 'Playfair Display', serif; font-size: 18px; }
 
   .count-badge {
     background: var(--accent-light);
@@ -213,7 +197,6 @@
     border-radius: 20px;
   }
 
-  /* Column labels */
   .col-labels {
     display: flex;
     justify-content: space-between;
@@ -244,29 +227,17 @@
     gap: 12px;
     box-shadow: var(--shadow);
     border: 1px solid var(--line);
-    transition: transform 0.15s, box-shadow 0.15s, opacity 0.3s;
+    transition: transform 0.15s, box-shadow 0.15s;
     animation: slideIn 0.3s ease both;
   }
 
-  .item:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 6px 20px rgba(0,0,0,0.1);
-  }
+  .item:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(0,0,0,0.1); }
 
-  .item.removing {
-    animation: slideOut 0.3s ease forwards;
-  }
+  .item.removing { animation: slideOut 0.3s ease forwards; overflow: hidden; }
 
-  .item.checked .item-name {
-    text-decoration: line-through;
-    color: var(--muted);
-  }
+  .item.checked .item-name  { text-decoration: line-through; color: var(--muted); }
+  .item.checked .item-price { color: var(--muted); }
 
-  .item.checked .item-price {
-    color: var(--muted);
-  }
-
-  /* Checkbox */
   .check-btn {
     width: 22px;
     height: 22px;
@@ -275,36 +246,18 @@
     background: transparent;
     cursor: pointer;
     flex-shrink: 0;
-    transition: all 0.2s;
     display: flex;
     align-items: center;
     justify-content: center;
     color: transparent;
     font-size: 11px;
+    transition: all 0.2s;
   }
 
-  .item.checked .check-btn {
-    background: var(--green);
-    border-color: var(--green);
-    color: white;
-  }
+  .item.checked .check-btn { background: var(--green); border-color: var(--green); color: white; }
 
-  .item-name {
-    flex: 1;
-    font-size: 15px;
-    font-weight: 400;
-    transition: color 0.2s;
-    word-break: break-word;
-  }
-
-  .item-price {
-    font-size: 15px;
-    font-weight: 500;
-    color: var(--accent);
-    white-space: nowrap;
-    min-width: 60px;
-    text-align: right;
-  }
+  .item-name  { flex: 1; font-size: 15px; font-weight: 400; transition: color 0.2s; word-break: break-word; }
+  .item-price { font-size: 15px; font-weight: 500; color: var(--accent); white-space: nowrap; min-width: 60px; text-align: right; }
 
   .delete-btn {
     width: 30px;
@@ -317,34 +270,19 @@
     align-items: center;
     justify-content: center;
     color: #ccc;
-    transition: background 0.15s, color 0.15s;
     flex-shrink: 0;
+    transition: background 0.15s, color 0.15s;
   }
 
-  .delete-btn:hover {
-    background: #fee2e2;
-    color: #e53e3e;
-  }
+  .delete-btn:hover { background: #fee2e2; color: #e53e3e; }
 
   /* Empty state */
-  .empty {
-    text-align: center;
-    padding: 48px 20px;
-    color: var(--muted);
-    display: none;
-  }
-
+  .empty      { text-align: center; padding: 48px 20px; color: var(--muted); display: none; }
   .empty.show { display: block; }
+  .empty-icon { font-size: 48px; margin-bottom: 12px; display: block; }
+  .empty p    { font-size: 14px; font-weight: 300; }
 
-  .empty-icon {
-    font-size: 48px;
-    margin-bottom: 12px;
-    display: block;
-  }
-
-  .empty p { font-size: 14px; font-weight: 300; }
-
-  /* Total card */
+  /* Total */
   .total-card {
     margin-top: 20px;
     background: var(--ink);
@@ -357,37 +295,18 @@
     animation: fadeUp 0.6s 0.35s ease both;
   }
 
-  .total-label {
-    font-size: 12px;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    opacity: 0.6;
-  }
+  .total-label { font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase; opacity: 0.6; }
+  .total-sub   { font-size: 11px; opacity: 0.5; margin-top: 2px; }
 
   .total-amount {
     font-family: 'Playfair Display', serif;
     font-size: 26px;
     color: #fff;
-    transition: transform 0.2s;
   }
 
-  .total-amount.bump {
-    animation: bump 0.3s ease;
-  }
+  .total-amount.bump { animation: bump 0.3s ease; }
 
-  .total-sub {
-    font-size: 11px;
-    opacity: 0.5;
-    margin-top: 2px;
-  }
-
-  /* Clear all */
-  .actions {
-    display: flex;
-    justify-content: flex-end;
-    margin-top: 14px;
-    animation: fadeUp 0.6s 0.4s ease both;
-  }
+  .actions { display: flex; justify-content: flex-end; margin-top: 14px; animation: fadeUp 0.6s 0.4s ease both; }
 
   .btn-clear {
     background: transparent;
@@ -399,36 +318,17 @@
     color: var(--muted);
     cursor: pointer;
     transition: all 0.2s;
-    letter-spacing: 0.3px;
   }
 
-  .btn-clear:hover {
-    border-color: #e53e3e;
-    color: #e53e3e;
-    background: #fee2e2;
-  }
+  .btn-clear:hover { border-color: #e53e3e; color: #e53e3e; background: #fee2e2; }
 
-  /* Animations */
-  @keyframes fadeDown {
-    from { opacity: 0; transform: translateY(-20px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(16px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-
-  @keyframes slideIn {
-    from { opacity: 0; transform: translateX(-12px); }
-    to   { opacity: 1; transform: translateX(0); }
-  }
-
+  @keyframes fadeDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes fadeUp   { from { opacity: 0; transform: translateY(16px);  } to { opacity: 1; transform: translateY(0); } }
+  @keyframes slideIn  { from { opacity: 0; transform: translateX(-12px); } to { opacity: 1; transform: translateX(0); } }
   @keyframes slideOut {
-    from { opacity: 1; transform: translateX(0); max-height: 80px; }
-    to   { opacity: 0; transform: translateX(20px); max-height: 0; padding: 0; margin: 0; }
+    from { opacity: 1; transform: translateX(0);   max-height: 80px; margin-bottom: 8px; }
+    to   { opacity: 0; transform: translateX(20px); max-height: 0;   padding: 0; margin: 0; }
   }
-
   @keyframes bump {
     0%   { transform: scale(1); }
     50%  { transform: scale(1.08); }
@@ -441,11 +341,13 @@
 <div class="wrapper">
   <header>
     <div class="header-tag">🛒 Shopping List</div>
-    <h1>Shopping <span>List</span></h1>
+    <h1>Market <span>Run</span></h1>
     <p class="subtitle">Add your items and keep track of the cost</p>
+    <div class="save-indicator" id="saveIndicator">
+      <span class="save-dot"></span> Saved
+    </div>
   </header>
 
-  <!-- Add Item Form -->
   <div class="add-card">
     <label>Add a new item</label>
     <div class="input-row">
@@ -460,14 +362,13 @@
       </div>
     </div>
     <button class="btn-add" onclick="addItem()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
         <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
       </svg>
       Add to List
     </button>
   </div>
 
-  <!-- List -->
   <div class="list-header">
     <span class="list-title">Your List</span>
     <span class="count-badge" id="countBadge">0 items</span>
@@ -475,7 +376,7 @@
 
   <div class="col-labels">
     <span>Item</span>
-    <span style="margin-right: 38px;">Price</span>
+    <span style="margin-right:38px">Price</span>
   </div>
 
   <div id="list"></div>
@@ -485,7 +386,6 @@
     <p>Your list is empty — add something above!</p>
   </div>
 
-  <!-- Total -->
   <div class="total-card">
     <div>
       <div class="total-label">Estimated Total</div>
@@ -500,15 +400,51 @@
 </div>
 
 <script>
-  let items = [];
+  const STORAGE_KEY = 'market-run-items';
+
+  // ── Persistence ──────────────────────────────────────────────
+
+  function loadFromStorage() {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  let saveTimer = null;
+
+  function saveToStorage() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+      flashSaved();
+    } catch (e) {
+      // Storage unavailable — fail silently
+    }
+  }
+
+  function flashSaved() {
+    const indicator = document.getElementById('saveIndicator');
+    indicator.classList.add('show');
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => indicator.classList.remove('show'), 2000);
+  }
+
+  // ── State ────────────────────────────────────────────────────
+
+  let items = loadFromStorage();
+
+  // ── Inputs ───────────────────────────────────────────────────
 
   const nameInput  = document.getElementById('itemName');
   const priceInput = document.getElementById('itemPrice');
 
-  // Allow Enter key to add item
   [nameInput, priceInput].forEach(el => {
     el.addEventListener('keydown', e => { if (e.key === 'Enter') addItem(); });
   });
+
+  // ── Actions ──────────────────────────────────────────────────
 
   function addItem() {
     const name  = nameInput.value.trim();
@@ -521,17 +457,11 @@
       return;
     }
 
-    items.push({
-      id: Date.now(),
-      name,
-      price: isNaN(price) ? 0 : price,
-      checked: false
-    });
-
+    items.push({ id: Date.now(), name, price: isNaN(price) ? 0 : price, checked: false });
     nameInput.value  = '';
     priceInput.value = '';
     nameInput.focus();
-
+    saveToStorage();
     render();
   }
 
@@ -539,16 +469,18 @@
     const el = document.querySelector(`[data-id="${id}"]`);
     if (el) {
       el.classList.add('removing');
-      setTimeout(() => {
+      el.addEventListener('animationend', () => {
         items = items.filter(i => i.id !== id);
+        saveToStorage();
         render();
-      }, 280);
+      }, { once: true });
     }
   }
 
   function toggleCheck(id) {
     const item = items.find(i => i.id === id);
     if (item) item.checked = !item.checked;
+    saveToStorage();
     render();
   }
 
@@ -556,27 +488,26 @@
     if (!items.length) return;
     if (confirm('Clear all items from your list?')) {
       items = [];
+      saveToStorage();
       render();
     }
   }
+
+  // ── Render ───────────────────────────────────────────────────
 
   function render() {
     const list    = document.getElementById('list');
     const empty   = document.getElementById('empty');
     const badge   = document.getElementById('countBadge');
-    const total   = document.getElementById('totalAmount');
-    const sub     = document.getElementById('totalSub');
     const totalEl = document.getElementById('totalAmount');
+    const sub     = document.getElementById('totalSub');
 
-    // Render items
     list.innerHTML = items.map(item => `
       <div class="item ${item.checked ? 'checked' : ''}" data-id="${item.id}">
-        <button class="check-btn" onclick="toggleCheck(${item.id})" title="Mark done">
-          ${item.checked ? '✓' : ''}
-        </button>
+        <button class="check-btn" onclick="toggleCheck(${item.id})">${item.checked ? '✓' : ''}</button>
         <span class="item-name">${escHtml(item.name)}</span>
         <span class="item-price">${item.price > 0 ? '$' + item.price.toFixed(2) : '—'}</span>
-        <button class="delete-btn" onclick="deleteItem(${item.id})" title="Remove item">
+        <button class="delete-btn" onclick="deleteItem(${item.id})">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
             <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>
           </svg>
@@ -584,21 +515,17 @@
       </div>
     `).join('');
 
-    // Empty state
     empty.classList.toggle('show', items.length === 0);
 
-    // Count
     const n = items.length;
     badge.textContent = n === 1 ? '1 item' : `${n} items`;
 
-    // Total
     const sum = items.reduce((acc, i) => acc + (i.price || 0), 0);
     totalEl.textContent = '$' + sum.toFixed(2);
     totalEl.classList.remove('bump');
-    void totalEl.offsetWidth; // reflow
+    void totalEl.offsetWidth;
     totalEl.classList.add('bump');
 
-    // Sub text
     const checked = items.filter(i => i.checked).length;
     sub.textContent = checked > 0
       ? `${checked} of ${n} item${n !== 1 ? 's' : ''} checked off`
@@ -611,7 +538,8 @@
     return d.innerHTML;
   }
 
-  // Initial render
+  // ── Init ─────────────────────────────────────────────────────
+
   render();
 </script>
 </body>
