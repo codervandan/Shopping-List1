@@ -227,11 +227,18 @@
     gap: 12px;
     box-shadow: var(--shadow);
     border: 1px solid var(--line);
-    transition: transform 0.15s, box-shadow 0.15s;
+    transition: transform 0.15s, box-shadow 0.15s, border-color 0.2s;
     animation: slideIn 0.3s ease both;
   }
 
   .item:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(0,0,0,0.1); }
+
+  /* Editing state — highlight the row */
+  .item.editing {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(200, 68, 10, 0.08);
+    transform: translateY(-1px);
+  }
 
   .item.removing { animation: slideOut 0.3s ease forwards; overflow: hidden; }
 
@@ -257,9 +264,58 @@
   .item.checked .check-btn { background: var(--green); border-color: var(--green); color: white; }
 
   .item-name  { flex: 1; font-size: 15px; font-weight: 400; transition: color 0.2s; word-break: break-word; }
-  .item-price { font-size: 15px; font-weight: 500; color: var(--accent); white-space: nowrap; min-width: 60px; text-align: right; }
+  .item-price { font-size: 15px; font-weight: 500; color: var(--accent); white-space: nowrap; min-width: 60px; text-align: right; transition: color 0.2s; }
 
-  .delete-btn {
+  /* Inline price editor — hidden by default, shown when editing */
+  .price-edit-wrap {
+    display: none;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+
+  .item.editing .item-price    { display: none; }
+  .item.editing .price-edit-wrap { display: flex; }
+
+  .price-edit-wrap .currency { font-size: 13px; color: var(--muted); }
+
+  .price-edit-input {
+    width: 72px;
+    padding: 5px 8px;
+    border: 1.5px solid var(--accent);
+    border-radius: 7px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ink);
+    background: #fff;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(200, 68, 10, 0.08);
+    /* Override the global input style for this specific input */
+    padding-left: 8px !important;
+  }
+
+  .save-edit-btn {
+    width: 28px;
+    height: 28px;
+    border: none;
+    background: var(--green);
+    border-radius: 7px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    flex-shrink: 0;
+    transition: background 0.15s, transform 0.1s;
+  }
+
+  .save-edit-btn:hover  { background: #235c41; }
+  .save-edit-btn:active { transform: scale(0.95); }
+
+  /* Shared icon button styles — edit & delete */
+  .delete-btn,
+  .edit-btn {
     width: 30px;
     height: 30px;
     border: none;
@@ -269,12 +325,18 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #ccc;
     flex-shrink: 0;
     transition: background 0.15s, color 0.15s;
   }
 
+  .edit-btn   { color: #bbb; }
+  .delete-btn { color: #ccc; }
+
+  .edit-btn:hover   { background: #e8f0fe; color: #3b6fd4; }
   .delete-btn:hover { background: #fee2e2; color: #e53e3e; }
+
+  /* Hide edit button while already editing that row */
+  .item.editing .edit-btn { display: none; }
 
   /* Empty state */
   .empty      { text-align: center; padding: 48px 20px; color: var(--muted); display: none; }
@@ -341,7 +403,7 @@
 <div class="wrapper">
   <header>
     <div class="header-tag">🛒 Shopping List</div>
-    <h1>Market <span>Run</span></h1>
+    <h1>Shopping <span>List</span></h1>
     <p class="subtitle">Add your items and keep track of the cost</p>
     <div class="save-indicator" id="saveIndicator">
       <span class="save-dot"></span> Saved
@@ -484,6 +546,50 @@
     render();
   }
 
+  // ── Edit price ───────────────────────────────────────────────
+
+  function startEdit(id) {
+    // Close any other open edit first
+    document.querySelectorAll('.item.editing').forEach(el => {
+      if (Number(el.dataset.id) !== id) cancelEdit(Number(el.dataset.id));
+    });
+
+    const el = document.querySelector(`[data-id="${id}"]`);
+    if (!el) return;
+
+    const item  = items.find(i => i.id === id);
+    const input = el.querySelector('.price-edit-input');
+
+    el.classList.add('editing');
+    input.value = item.price > 0 ? item.price.toFixed(2) : '';
+    input.focus();
+    input.select();
+  }
+
+  function confirmEdit(id) {
+    const el    = document.querySelector(`[data-id="${id}"]`);
+    if (!el) return;
+
+    const input = el.querySelector('.price-edit-input');
+    const item  = items.find(i => i.id === id);
+    const newPrice = parseFloat(input.value);
+
+    if (item) {
+      item.price = isNaN(newPrice) || newPrice < 0 ? 0 : newPrice;
+    }
+
+    el.classList.remove('editing');
+    saveToStorage();
+    render();
+  }
+
+  function cancelEdit(id) {
+    const el = document.querySelector(`[data-id="${id}"]`);
+    if (el) el.classList.remove('editing');
+  }
+
+  // ── Clear ────────────────────────────────────────────────────
+
   function clearAll() {
     if (!items.length) return;
     if (confirm('Clear all items from your list?')) {
@@ -504,14 +610,50 @@
 
     list.innerHTML = items.map(item => `
       <div class="item ${item.checked ? 'checked' : ''}" data-id="${item.id}">
+
         <button class="check-btn" onclick="toggleCheck(${item.id})">${item.checked ? '✓' : ''}</button>
+
         <span class="item-name">${escHtml(item.name)}</span>
+
+        <!-- Static price label (hidden while editing) -->
         <span class="item-price">${item.price > 0 ? '$' + item.price.toFixed(2) : '—'}</span>
-        <button class="delete-btn" onclick="deleteItem(${item.id})">
+
+        <!-- Inline price editor (shown while editing) -->
+        <div class="price-edit-wrap">
+          <span class="currency">$</span>
+          <input
+            class="price-edit-input"
+            type="number"
+            min="0"
+            step="0.01"
+            placeholder="0.00"
+            onkeydown="
+              if (event.key === 'Enter')  confirmEdit(${item.id});
+              if (event.key === 'Escape') cancelEdit(${item.id});
+            "
+          />
+          <button class="save-edit-btn" onclick="confirmEdit(${item.id})" title="Save price">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Edit button -->
+        <button class="edit-btn" onclick="startEdit(${item.id})" title="Edit price">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+          </svg>
+        </button>
+
+        <!-- Delete button -->
+        <button class="delete-btn" onclick="deleteItem(${item.id})" title="Remove item">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
             <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>
           </svg>
         </button>
+
       </div>
     `).join('');
 
